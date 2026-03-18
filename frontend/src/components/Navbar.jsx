@@ -21,7 +21,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Brand */}
         <Link to="/" className="flex items-center gap-3 font-black text-xl text-white hover:text-blue-300 transition-colors">
-          <FaMicrophone className="text-2xl" />
+          <img src="/speakbloom-logo.png" alt="SpeakBloom" className="w-8 h-8 rounded-lg" />
           <span className="hidden md:inline">SpeakBloom</span>
         </Link>
 

@@ -37,6 +37,11 @@ export default function AuthPage() {
           </p>
         </div>
 
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <img src="/speakbloom-logo.png" alt="SpeakBloom" className="w-24 h-24 rounded-2xl shadow-lg" />
+        </div>
+
         {/* Features showcase */}
         <div className="grid grid-cols-2 gap-2 mb-8">
           {[
