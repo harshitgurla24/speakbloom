@@ -6,3 +6,5 @@ venv/
 
 # Environment variables — NEVER commit this
 .env
+
+api.txt
