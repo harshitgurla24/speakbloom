@@ -17,7 +17,7 @@ final_project/
 │   │   ├── api_keys.py            ← Encryption & API key management
 │   │   ├── text_generator.py      ← Groq AI text generation
 │   │   └── pronunciation.py       ← Word comparison & scoring
-│   ├── user_api_keys/             ← Encrypted user API keys storage
+│   ├── data/                      ← Local SQLite fallback (dev only)
 │   ├── requirements.txt
 │   └── .env
 │
@@ -99,9 +99,12 @@ APP_JWT_EXPIRE_HOURS=24
 
 # API Key Encryption (Fernet)
 API_KEY_ENCRYPTION_KEY=your-encryption-key-here
+
+# Database (use managed Postgres in production)
+DATABASE_URL=postgresql://user:password@host:5432/dbname
 ```
 
-> **Getting Encryption Key**: Leave `API_KEY_ENCRYPTION_KEY` blank on first run — the app will generate one automatically. Copy it and set it in `.env` for production.
+> **Getting Encryption Key**: Leave `API_KEY_ENCRYPTION_KEY` blank on first run only for local testing. For production, always set a fixed value.
 
 **Start the server:**
 ```bash
@@ -144,24 +147,18 @@ The app will be available at **http://localhost:5173**
    - Generate an API key (starts with `gsk_`)
 6. **Add & Save**:
    - Paste key in modal → Click "✅ Add API Key"
-   - Key is encrypted and stored locally
+  - Key is encrypted and stored in database
    - Page auto-reloads
    - Navbar button disappears ✨
 7. **Ready to Practice!** 🎉
 
 ### Key Storage & Security
 
-- **Location**: `backend/user_api_keys/{user_email}_keys.json`
+- **Storage**: Database table `user_api_keys` (persistent across deploys)
 - **Encryption**: Fernet (256-bit AES) via `cryptography` library
-- **Per-User**: Each user has separate encrypted file
-- **No Plain Text**: Keys are always encrypted, never stored as plain text
-
-**Example Storage:**
-```json
-{
-  "groq": "gAAAAABn5x...encrypted_base64_data...XyZ=="
-}
-```
+- **Per-User**: One encrypted record per user + provider
+- **No Plain Text**: Keys are always encrypted before storing
+- **Deploy Ready**: Works on cloud instances where local filesystem is ephemeral
 
 ---
 
@@ -396,6 +393,7 @@ The Web Speech API (speech recognition + text-to-speech) is required. Supported 
   - `APP_JWT_ALGORITHM=HS256`
   - `APP_JWT_EXPIRE_HOURS=24`
   - `API_KEY_ENCRYPTION_KEY`
+  - `DATABASE_URL`
 
 ### Frontend (Vercel / Netlify)
 

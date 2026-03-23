@@ -8,3 +8,7 @@ venv/
 .env
 
 api.txt
+
+# Local fallback database
+data/
+*.db
