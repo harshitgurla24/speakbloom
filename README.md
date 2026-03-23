@@ -383,33 +383,30 @@ The Web Speech API (speech recognition + text-to-speech) is required. Supported 
 
 ## 🚀 Deployment
 
-### Backend (Railway.app / Heroku)
+### Backend (Railway / Render)
 
+1. Set service root directory to `backend/`
+2. Start command:
+  ```bash
+  uvicorn app.main:app --host 0.0.0.0 --port $PORT
+  ```
+3. Add required environment variables:
+  - `GOOGLE_CLIENT_ID`
+  - `APP_JWT_SECRET`
+  - `APP_JWT_ALGORITHM=HS256`
+  - `APP_JWT_EXPIRE_HOURS=24`
+  - `API_KEY_ENCRYPTION_KEY`
+
+### Frontend (Vercel / Netlify)
+
+Deploy the `frontend/` directory and add these environment variables:
+
+- `VITE_GOOGLE_CLIENT_ID`
+- `VITE_API_BASE_URL=https://your-backend-domain`
+
+Then run build command:
 ```bash
-# Push to Git
-git add .
-git commit -m "Deploy SpeakBloom"
-git push origin main
-
-# On Railway:
-1. Connect GitHub repo
-2. Set environment variables in dashboard
-3. Build & deploy automatically
-```
-
-### Frontend (Vercel)
-
-```bash
-# Deploy with Vercel CLI
-npm install -g vercel
-vercel
-
-# Or connect GitHub for auto-deployment
-```
-
-Update `frontend/src/apiClient.js`:
-```javascript
-const API_BASE = process.env.REACT_APP_API_URL || 'https://your-backend-url.railway.app'
+npm run build
 ```
 
 ---
