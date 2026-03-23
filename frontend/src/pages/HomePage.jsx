@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FaMicrophone, FaGamepad, FaLanguage, FaSliders, FaTrophy } from 'react-icons/fa6'
 import { LANGUAGES, TEXT_LENGTHS, LEVELS } from '../constants'
-import apiClient from '../apiClient'
+import apiClient, { apiKeyMethods } from '../apiClient'
 import Loader from '../components/Loader'
+import ApiKeyModal from '../components/ApiKeyModal'
 
 /**
  * HomePage
@@ -22,6 +23,23 @@ export default function HomePage() {
   const [level, setLevel]           = useState('easy')
   const [loading, setLoading]       = useState(false)
   const [error, setError]           = useState('')
+  
+  // API Key Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [hasApiKey, setHasApiKey] = useState(false)
+
+  // Check API key status on mount
+  useEffect(() => {
+    const checkApiKeyStatus = async () => {
+      try {
+        const response = await apiKeyMethods.getStatus()
+        setHasApiKey(response.data.has_api_key)
+      } catch (error) {
+        console.log('Could not check API key status')
+      }
+    }
+    checkApiKeyStatus()
+  }, [isModalOpen])
 
   /**
    * Calls POST /generate-text, stores the result in sessionStorage,
@@ -29,6 +47,13 @@ export default function HomePage() {
    */
   const handleGenerate = async (destination) => {
     setError('')
+    
+    // Check if user has API key
+    if (!hasApiKey) {
+      setError('🔑 Please add your Groq API key first!')
+      return
+    }
+    
     setLoading(true)
     try {
       const { data } = await apiClient.post('/generate-text', {
@@ -160,8 +185,19 @@ export default function HomePage() {
 
           {/* Error message */}
           {error && (
-            <div className="rounded-xl bg-gradient-to-r from-red-100 to-pink-100 border-2 border-red-400 text-red-800 px-4 py-3 text-center font-bold shadow-lg animate-pulse text-sm">
-              ⚠️ {error}
+            <div className="rounded-xl bg-gradient-to-r from-red-100 to-pink-100 border-2 border-red-400 text-red-800 px-4 py-3 text-center font-bold shadow-lg animate-pulse text-sm flex items-center justify-between gap-3">
+              <span>⚠️ {error}</span>
+              {error.includes('API key') && (
+                <button
+                  onClick={() => {
+                    setError('')
+                    setIsModalOpen(true)
+                  }}
+                  className="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded-lg transition-all text-xs whitespace-nowrap"
+                >
+                  Add Now
+                </button>
+              )}
             </div>
           )}
 
@@ -215,6 +251,13 @@ export default function HomePage() {
             ))}
           </div>
         </div>
+
+        {/* API Key Modal */}
+        <ApiKeyModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={() => setHasApiKey(true)}
+        />
       </div>
 
       <style>{`

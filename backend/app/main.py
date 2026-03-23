@@ -26,6 +26,7 @@ from jose import JWTError, jwt
 
 from app.text_generator import generate_text
 from app.pronunciation import analyze_pronunciation
+from app.api_keys import save_api_key, get_api_key, delete_api_key, has_api_key, validate_groq_api_key
 
 # ---------------------------------------------------------------------------
 # App setup
@@ -108,6 +109,26 @@ class AnalyzePronunciationRequest(BaseModel):
     original_text: str = Field(..., min_length=1)
     spoken_text: str = Field(..., min_length=0)
     time_taken: float = Field(..., ge=0, description="Recording duration in seconds")
+
+
+class SaveApiKeyRequest(BaseModel):
+    api_key: str = Field(..., min_length=1, description="The API key to save")
+    provider: str = Field(default="groq", description="API provider (e.g., groq)")
+
+
+class ApiKeyResponse(BaseModel):
+    success: bool
+    message: str
+    has_api_key: bool
+
+
+class ValidateApiKeyRequest(BaseModel):
+    api_key: str = Field(..., min_length=1, description="The API key to validate")
+
+
+class ValidateApiKeyResponse(BaseModel):
+    valid: bool
+    message: str
 
 
 def _create_access_token(user: AuthUser) -> tuple[str, int]:
@@ -221,6 +242,9 @@ def generate_text_endpoint(
 ):
     """
     Generate a practice paragraph for the given language, length, and difficulty level.
+    
+    REQUIRES user's stored Groq API key. Will fail if user hasn't added their API key.
+    Users must add their API key from https://console.groq.com/keys
 
     - **language**: BCP-47 code (e.g. en-US, hi-IN, mr-IN, gu-IN, bn-IN, ar-SA, te-IN, or-IN, ta-IN, pa-IN, sa-IN, ml-IN)
     - **length**: short | medium | long
@@ -245,8 +269,34 @@ def generate_text_endpoint(
                    f"Supported: {sorted(SUPPORTED_LEVELS)}",
         )
 
-    text = generate_text(language=request.language, length=request.length, level=request.level)
-    return GenerateTextResponse(text=text, language=request.language, length=request.length, level=request.level)
+    # Get user's stored API key
+    user_api_key = get_api_key(current_user.email, "groq")
+    
+    # API key is REQUIRED
+    if not user_api_key:
+        raise HTTPException(
+            status_code=403,
+            detail="Groq API key not found. Please add your API key from https://console.groq.com/keys"
+        )
+    
+    print(f"[/generate-text] Generating text for user: {current_user.email}")
+    print(f"[/generate-text] API key length: {len(user_api_key)} chars")
+    
+    try:
+        # Generate text using user's API key only
+        text = generate_text(
+            language=request.language, 
+            length=request.length, 
+            level=request.level,
+            api_key=user_api_key
+        )
+        return GenerateTextResponse(text=text, language=request.language, length=request.length, level=request.level)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        error_msg = str(e)
+        print(f"[/generate-text] Error: {error_msg}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate text: {error_msg}")
 
 
 @app.post("/analyze-pronunciation")
@@ -271,3 +321,83 @@ def analyze_pronunciation_endpoint(
         time_taken=request.time_taken,
     )
     return result
+
+
+# ---------------------------------------------------------------------------
+# API Key Management Endpoints
+# ---------------------------------------------------------------------------
+
+@app.post("/api-key/save", response_model=ApiKeyResponse)
+def save_api_key_endpoint(
+    request: SaveApiKeyRequest,
+    current_user: AuthUser = Depends(get_current_user),
+):
+    """
+    Save or update a user's API key (encrypted storage)
+    
+    - **api_key**: The API key to save
+    - **provider**: API provider name (default: groq)
+    """
+    if not request.api_key.strip():
+        raise HTTPException(status_code=400, detail="API key cannot be empty.")
+    
+    success = save_api_key(current_user.email, request.provider, request.api_key)
+    
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to save API key.")
+    
+    return ApiKeyResponse(
+        success=True,
+        message=f"API key for {request.provider} saved successfully",
+        has_api_key=True
+    )
+
+
+@app.post("/api-key/validate", response_model=ValidateApiKeyResponse)
+async def validate_api_key_endpoint(
+    request: ValidateApiKeyRequest,
+    current_user: AuthUser = Depends(get_current_user),
+):
+    """
+    Validate a Groq API key before saving
+    """
+    if not request.api_key.strip():
+        raise HTTPException(status_code=400, detail="API key cannot be empty.")
+    
+    valid = await validate_groq_api_key(request.api_key)
+    
+    return ValidateApiKeyResponse(
+        valid=valid,
+        message="API key is valid" if valid else "Invalid API key or failed to validate"
+    )
+
+
+@app.get("/api-key/status")
+def get_api_key_status(
+    current_user: AuthUser = Depends(get_current_user),
+):
+    """
+    Check if user has an API key saved (without retrieving it)
+    """
+    has_key = has_api_key(current_user.email, "groq")
+    
+    return {
+        "has_api_key": has_key,
+        "provider": "groq",
+        "message": "API key is set" if has_key else "No API key set"
+    }
+
+
+@app.delete("/api-key/delete")
+def delete_api_key_endpoint(
+    current_user: AuthUser = Depends(get_current_user),
+):
+    """
+    Delete user's stored API key
+    """
+    success = delete_api_key(current_user.email, "groq")
+    
+    return {
+        "success": success,
+        "message": "API key deleted successfully" if success else "No API key to delete"
+    }

@@ -15,4 +15,23 @@ apiClient.interceptors.request.use((config) => {
   return config
 })
 
+// API Key Management
+export const apiKeyMethods = {
+  // Save or update API key
+  saveApiKey: (apiKey, provider = 'groq') =>
+    apiClient.post('/api-key/save', { api_key: apiKey, provider }),
+  
+  // Validate API key before saving
+  validateApiKey: (apiKey) =>
+    apiClient.post('/api-key/validate', { api_key: apiKey }),
+  
+  // Check if user has API key (without retrieving it)
+  getStatus: () =>
+    apiClient.get('/api-key/status'),
+  
+  // Delete stored API key
+  deleteApiKey: () =>
+    apiClient.delete('/api-key/delete'),
+}
+
 export default apiClient

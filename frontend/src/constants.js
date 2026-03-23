@@ -5,7 +5,7 @@
  */
 
 /** Base URL of the FastAPI backend */
-export const API_BASE = 'http://localhost:8000'
+export const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
 /** Supported languages with their BCP-47 codes and display labels */
 export const LANGUAGES = [

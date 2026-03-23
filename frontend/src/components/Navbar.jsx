@@ -1,6 +1,9 @@
 import { Link, useLocation } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { FaMicrophone, FaHome, FaGamepad, FaUser, FaLock } from 'react-icons/fa'
 import { useAuth } from '../context/AuthContext'
+import { apiKeyMethods } from '../apiClient'
+import ApiKeyModal from './ApiKeyModal'
 
 /**
  * Navbar – top navigation bar with links to all major pages.
@@ -8,6 +11,21 @@ import { useAuth } from '../context/AuthContext'
 export default function Navbar() {
   const { pathname } = useLocation()
   const { isAuthenticated } = useAuth()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [hasApiKey, setHasApiKey] = useState(false)
+
+  // Check API key status on mount and when modal closes
+  useEffect(() => {
+    const checkApiKeyStatus = async () => {
+      try {
+        const response = await apiKeyMethods.getStatus()
+        setHasApiKey(response.data.has_api_key)
+      } catch (error) {
+        console.log('Could not check API key status')
+      }
+    }
+    checkApiKeyStatus()
+  }, [isModalOpen])
 
   const links = [
     { to: '/home',     icon: FaHome, label: 'Home' },
@@ -21,34 +39,55 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Brand */}
         <Link to="/" className="flex items-center gap-3 font-black text-xl text-white hover:text-blue-300 transition-colors">
-          <img src="/speakbloom-logo.png" alt="SpeakBloom" className="w-8 h-8 rounded-lg" />
+          <img src="/speakbloom-logo.png" alt="SpeakBloom" className="w-14 h-14 rounded-lg" />
           <span className="hidden md:inline">SpeakBloom</span>
         </Link>
 
         {/* Nav links - Only when authenticated */}
         <div className="flex gap-1 items-center">
           {isAuthenticated ? (
-            links.map(({ to, icon: Icon, label }) => (
-              <Link
-                key={to}
-                to={to}
-                className={`px-4 py-2 rounded-lg text-sm md:text-base font-semibold transition-all flex items-center gap-2
-                  ${pathname === to
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-700'
-                  }`}
-                title={label}
-              >
-                <Icon className="text-lg" />
-                <span className="hidden lg:inline">{label}</span>
-              </Link>
-            ))
+            <>
+              {links.map(({ to, icon: Icon, label }) => (
+                <Link
+                  key={to}
+                  to={to}
+                  className={`px-4 py-2 rounded-lg text-sm md:text-base font-semibold transition-all flex items-center gap-2
+                    ${pathname === to
+                      ? 'bg-blue-600 text-white'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-700'
+                    }`}
+                  title={label}
+                >
+                  <Icon className="text-lg" />
+                  <span className="hidden lg:inline">{label}</span>
+                </Link>
+              ))}
+              
+              {/* API Key Button - Only show if user hasn't added API key yet */}
+              {!hasApiKey && (
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="ml-2 px-3 py-2 rounded-lg text-sm md:text-base font-semibold transition-all flex items-center gap-2 bg-orange-500 text-white hover:bg-orange-600"
+                  title="Add Groq API Key"
+                >
+                  <span>🔑</span>
+                  <span className="hidden lg:inline">Add API</span>
+                </button>
+              )}
+            </>
           ) : (
             <div className="text-slate-300 font-semibold px-4 py-2 flex items-center gap-2">
               <FaLock className="text-lg" /> Sign in
             </div>
           )}
         </div>
+
+        {/* API Key Modal */}
+        <ApiKeyModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={() => setHasApiKey(true)}
+        />
       </div>
 
     </nav>

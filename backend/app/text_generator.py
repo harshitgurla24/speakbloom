@@ -461,12 +461,25 @@ LEVEL_INSTRUCTIONS = {
 }
 
 
-def _generate_with_groq(language: str, length: str, level: str = "medium") -> str:
-    """Use the Groq API to generate a practice paragraph based on language, length, and level."""
+def _generate_with_groq(language: str, length: str, level: str = "medium", api_key: str = None) -> str:
+    """Use the Groq API to generate a practice paragraph based on language, length, and level.
+    
+    Requires api_key to be provided - no fallback to environment variable.
+    """
     try:
         from groq import Groq  # type: ignore
 
-        client = Groq(api_key=os.environ["GROQ_API_KEY"])
+        # User must provide API key
+        if not api_key:
+            raise ValueError("Groq API key is required. Please add your API key in your profile.")
+        
+        # Trim the API key in case there are any spaces
+        api_key = api_key.strip()
+        
+        # Debug logging
+        print(f"[text_generator] Using Groq API with key length: {len(api_key)} chars")
+        
+        client = Groq(api_key=api_key)
         lang_name = LANGUAGE_NAMES.get(language, language)
         word_count = WORD_COUNTS.get(length, "80 to 120 words")
         level_instruction = LEVEL_INSTRUCTIONS.get(level, LEVEL_INSTRUCTIONS["medium"])
@@ -487,8 +500,8 @@ def _generate_with_groq(language: str, length: str, level: str = "medium") -> st
         )
         return response.choices[0].message.content.strip()
     except Exception as exc:  # noqa: BLE001
-        print(f"[text_generator] Groq call failed ({exc}), using placeholder.")
-        return _pick_placeholder(language, length)
+        print(f"[text_generator] Groq call failed ({exc})")
+        raise
 
 
 # ---------------------------------------------------------------------------
@@ -496,13 +509,25 @@ def _generate_with_groq(language: str, length: str, level: str = "medium") -> st
 # ---------------------------------------------------------------------------
 
 
-def generate_text(language: str, length: str, level: str = "medium") -> str:
+def generate_text(language: str, length: str, level: str = "medium", api_key: str = None) -> str:
     """
     Generate a practice paragraph.
 
-    Uses Groq LLM if GROQ_API_KEY is set in the environment;
-    otherwise returns a hardcoded placeholder paragraph.
+    REQUIRES user's API key - will fail if no API key is provided.
+    Users must add their Groq API key from https://console.groq.com/keys
+    
+    Args:
+        language: BCP-47 language code
+        length: 'short', 'medium', or 'long'
+        level: 'easy', 'medium', or 'hard'
+        api_key: Groq API key (REQUIRED)
+    
+    Raises:
+        ValueError: If api_key is not provided
     """
-    if os.environ.get("GROQ_API_KEY"):
-        return _generate_with_groq(language, length, level)
-    return _pick_placeholder(language, length)
+    if not api_key:
+        raise ValueError(
+            "API key is required. Please add your Groq API key from https://console.groq.com/keys"
+        )
+    
+    return _generate_with_groq(language, length, level, api_key)
