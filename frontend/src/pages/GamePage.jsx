@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FaGamepad } from 'react-icons/fa6'
+import { FaGamepad } from 'react-icons/fa'
 import { LANGUAGES } from '../constants'
 
 const TOTAL_LEVELS = 20

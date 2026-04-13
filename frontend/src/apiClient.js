@@ -34,4 +34,26 @@ export const apiKeyMethods = {
     apiClient.delete('/api-key/delete'),
 }
 
+// User Stats Management
+export const userStatsMethods = {
+  // Update user stats after a practice session
+  updateStats: (data) =>
+    apiClient.post('/user/stats/update', data),
+}
+
+// Admin Methods
+export const adminMethods = {
+  // Get admin dashboard with all users' stats
+  getDashboard: () =>
+    apiClient.get('/admin/dashboard'),
+  
+  // Get all users info
+  getUsers: () =>
+    apiClient.get('/admin/users'),
+  
+  // Get summary admin stats
+  getStats: () =>
+    apiClient.get('/admin/stats'),
+}
+
 export default apiClient

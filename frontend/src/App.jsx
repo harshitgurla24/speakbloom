@@ -6,6 +6,7 @@ import PracticePage from './pages/PracticePage'
 import ResultPage from './pages/ResultPage'
 import GamePage from './pages/GamePage'
 import GameLevelPage from './pages/GameLevelPage'
+import AdminPanel from './pages/AdminPanel'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
 
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="/game" element={<ProtectedRoute><GamePage /></ProtectedRoute>} />
             <Route path="/game/level/:levelNumber" element={<ProtectedRoute><GameLevelPage /></ProtectedRoute>} />
             <Route path="/result" element={<ProtectedRoute><ResultPage /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
           </Routes>
         </main>
       </div>
