@@ -108,7 +108,7 @@ export default function AdminPanel() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">🎓 Admin Panel</h1>
-          <p className="text-purple-300">Users aur performance ke statistics yahan dekhen</p>
+          <p className="text-purple-300">View users and performance statistics here</p>
         </div>
 
         {/* Error Message */}
@@ -186,7 +186,7 @@ export default function AdminPanel() {
               <label className="block text-sm font-medium text-slate-300 mb-2">Search User</label>
               <input
                 type="text"
-                placeholder="Email ya name se search karein..."
+                placeholder="Search with email or name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-purple-500"
@@ -287,7 +287,7 @@ export default function AdminPanel() {
                 ) : (
                   <tr>
                     <td colSpan="8" className="px-6 py-8 text-center text-slate-400">
-                      Koi users nahi milae filters ke according
+                      No users found matching the criteria.
                     </td>
                   </tr>
                 )}
@@ -298,7 +298,7 @@ export default function AdminPanel() {
 
         {/* Summary */}
         <div className="mt-6 text-center text-slate-400 text-sm">
-          Total {sortedUsers.length} users show ho rahe hain
+          Total {sortedUsers.length} users displayed. Admin panel is for monitoring and improving user experience. Keep blooming! 🌸
         </div>
       </div>
     </div>
