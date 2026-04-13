@@ -70,8 +70,6 @@ class UserStats(Base):
     )
     
     __table_args__ = (
-        Index('idx_user_email', 'user_email'),
-        Index('idx_created_at', 'created_at'),
         Index('idx_current_level', 'current_level'),
     )
 
@@ -83,7 +81,7 @@ class SessionHistory(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_email: Mapped[str] = mapped_column(String(320), index=True)
     
-    language: Mapped[str] = mapped_column(String(50))
+    language: Mapped[str] = mapped_column(String(50), index=True)
     level: Mapped[str] = mapped_column(String(20))  # easy, medium, hard
     text_length: Mapped[str] = mapped_column(String(20))  # short, medium, long
     
@@ -100,12 +98,6 @@ class SessionHistory(Base):
         default=lambda: datetime.now(timezone.utc),
         index=True
     )
-    
-    __table_args__ = (
-        Index('idx_user_email', 'user_email'),
-        Index('idx_created_at', 'created_at'),
-        Index('idx_language', 'language'),
-    )
 
 
 class AdminUser(Base):
@@ -119,10 +111,6 @@ class AdminUser(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc)
-    )
-    
-    __table_args__ = (
-        Index('idx_admin_email', 'admin_email'),
     )
 
 
