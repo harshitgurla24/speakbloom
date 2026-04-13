@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import StatCard from '../components/StatCard'
 import WordHighlighter from '../components/WordHighlighter'
 import { isRtlLanguage } from '../constants'
+import { userStatsMethods } from '../apiClient'
 
 /**
  * ResultPage
@@ -28,6 +29,43 @@ export default function ResultPage() {
     setSpoken(sessionStorage.getItem('spokenText')   || '')
     setOriginal(sessionStorage.getItem('practiceText') || '')
     setLanguage(sessionStorage.getItem('language') || 'en-US')
+    
+    // Save user stats
+    const saveStats = async () => {
+      try {
+        const level = sessionStorage.getItem('level') || 'easy'
+        const textLength = sessionStorage.getItem('length') || 'medium'
+        const timeTaken = parseFloat(sessionStorage.getItem('timeTaken') || '0')
+        
+        const analysisResult = JSON.parse(raw)
+        
+        // Calculate score based on accuracy and fluency
+        let score = analysisResult.accuracy || 0
+        
+        // Get fluency score (map rating to numeric value)
+        const fluencyMap = {
+          'Excellent': 95,
+          'Good': 80,
+          'Average': 65,
+          'Needs Practice': 40
+        }
+        const fluencyScore = fluencyMap[analysisResult.fluency_rating] || 60
+        
+        await userStatsMethods.updateStats({
+          accuracy: analysisResult.accuracy || 0,
+          fluency: fluencyScore,
+          score: score,
+          language: language,
+          level: level,
+          text_length: textLength,
+          duration_seconds: timeTaken
+        })
+      } catch (error) {
+        console.debug('Could not save user stats:', error.message)
+      }
+    }
+    
+    saveStats()
   }, [navigate])
 
   if (!result) return null

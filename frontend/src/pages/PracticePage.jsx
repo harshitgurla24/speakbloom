@@ -306,6 +306,7 @@ export default function PracticePage() {
       // Pass analysis result to ResultPage via sessionStorage
       sessionStorage.setItem('analysisResult', JSON.stringify(data))
       sessionStorage.setItem('spokenText', spokenText)
+      sessionStorage.setItem('timeTaken', timeTaken.toString())
       navigate('/result')
     } catch (err) {
       setError(

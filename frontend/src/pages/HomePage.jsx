@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FaMicrophone, FaGamepad, FaLanguage, FaSliders, FaTrophy } from 'react-icons/fa6'
+import { FaMicrophone, FaGamepad, FaGlobe, FaCog, FaTrophy } from 'react-icons/fa'
 import { LANGUAGES, TEXT_LENGTHS, LEVELS } from '../constants'
 import apiClient, { apiKeyMethods } from '../apiClient'
 import Loader from '../components/Loader'
@@ -118,7 +118,7 @@ export default function HomePage() {
           {/* Language Selector */}
           <div className="bg-white rounded-2xl shadow-lg border-2 border-slate-200 p-6 hover:shadow-xl hover:border-blue-300 transition-all duration-300">
             <div className="flex items-center gap-2 mb-3">
-              <FaLanguage className="text-2xl text-blue-600" />
+              <FaGlobe className="text-2xl text-blue-600" />
               <h2 className="text-lg font-bold text-slate-800">Language</h2>
             </div>
             <select
@@ -139,7 +139,7 @@ export default function HomePage() {
           {/* Text Length Card */}
           <div className="bg-white rounded-2xl shadow-lg border-2 border-slate-200 p-6 hover:shadow-xl hover:border-orange-300 transition-all duration-300">
             <div className="flex items-center gap-2 mb-3">
-              <FaSliders className="text-2xl text-orange-600" />
+              <FaCog className="text-2xl text-orange-600" />
               <h2 className="text-lg font-bold text-slate-800">How Long?</h2>
             </div>
             <div className="grid grid-cols-3 gap-2">

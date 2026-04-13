@@ -1,8 +1,8 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { FaMicrophone, FaHome, FaGamepad, FaUser, FaLock } from 'react-icons/fa'
+import { FaMicrophone, FaHome, FaGamepad, FaUser, FaLock, FaShieldAlt } from 'react-icons/fa'
 import { useAuth } from '../context/AuthContext'
-import { apiKeyMethods } from '../apiClient'
+import { apiKeyMethods, adminMethods } from '../apiClient'
 import ApiKeyModal from './ApiKeyModal'
 
 /**
@@ -13,25 +13,44 @@ export default function Navbar() {
   const { isAuthenticated } = useAuth()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [hasApiKey, setHasApiKey] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
-  // Check API key status on mount and when modal closes
+  // Check API key status and admin status on mount and when modal closes
   useEffect(() => {
-    const checkApiKeyStatus = async () => {
+    const checkStatus = async () => {
       try {
         const response = await apiKeyMethods.getStatus()
         setHasApiKey(response.data.has_api_key)
       } catch (error) {
         console.log('Could not check API key status')
       }
+      
+      // Check if user is admin
+      try {
+        const response = await adminMethods.getStats()
+        console.log('✅ Admin access granted! Stats:', response.data)
+        setIsAdmin(true)
+      } catch (error) {
+        console.log('❌ Not admin or error:', error.response?.status, error.response?.data?.detail)
+        setIsAdmin(false)
+      }
     }
-    checkApiKeyStatus()
-  }, [isModalOpen])
+    
+    if (isAuthenticated) {
+      console.log('🔐 Checking admin status...')
+      checkStatus()
+    }
+  }, [isModalOpen, isAuthenticated])
 
   const links = [
     { to: '/home',     icon: FaHome, label: 'Home' },
     { to: '/practice', icon: FaMicrophone, label: 'Practice' },
     { to: '/game',     icon: FaGamepad, label: 'Levels' },
     { to: '/profile',  icon: FaUser, label: 'Profile' },
+  ]
+  
+  const adminLinks = [
+    { to: '/admin', icon: FaShieldAlt, label: 'Admin' },
   ]
 
   return (
@@ -55,6 +74,23 @@ export default function Navbar() {
                     ${pathname === to
                       ? 'bg-blue-600 text-white'
                       : 'text-slate-300 hover:text-white hover:bg-slate-700'
+                    }`}
+                  title={label}
+                >
+                  <Icon className="text-lg" />
+                  <span className="hidden lg:inline">{label}</span>
+                </Link>
+              ))}
+              
+              {/* Admin link - Only show for admins */}
+              {isAdmin && adminLinks.map(({ to, icon: Icon, label }) => (
+                <Link
+                  key={to}
+                  to={to}
+                  className={`px-4 py-2 rounded-lg text-sm md:text-base font-semibold transition-all flex items-center gap-2
+                    ${pathname === to
+                      ? 'bg-red-600 text-white'
+                      : 'text-slate-300 hover:text-white hover:bg-red-700'
                     }`}
                   title={label}
                 >
